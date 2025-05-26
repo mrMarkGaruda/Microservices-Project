@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey, Table, Text
+from sqlalchemy import Column, String, Float, Integer, Boolean, ForeignKey, Table, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from .database import Base
 
 class UserModel(Base):
@@ -16,9 +17,29 @@ class UserModel(Base):
     height = Column(Float, nullable=True)
     fitness_goal = Column(String, nullable=True)
     onboarded = Column(String, default="false", nullable=False)
+    
+    # Relationship to exercise history
+    exercise_history = relationship("UserExerciseHistoryModel", back_populates="user")
 
     def __repr__(self):
         return f"<User(email='{self.email}', name='{self.name}', role='{self.role}')>"
+
+class UserExerciseHistoryModel(Base):
+    __tablename__ = "user_exercise_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_email = Column(String, ForeignKey("users.email", ondelete="CASCADE"), nullable=False)
+    exercise_id = Column(Integer, ForeignKey("exercises.id", ondelete="CASCADE"), nullable=False)
+    performed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    suggested_weight = Column(Float, nullable=True)
+    suggested_reps = Column(Integer, nullable=True)
+    
+    # Relationships
+    user = relationship("UserModel", back_populates="exercise_history")
+    exercise = relationship("ExerciseModel", back_populates="history")
+
+    def __repr__(self):
+        return f"<UserExerciseHistory(user='{self.user_email}', exercise_id={self.exercise_id}, date='{self.performed_at}')>"
 
 # Junction table for the many-to-many relationship between exercises and muscle groups
 exercise_muscle_groups = Table(
@@ -63,6 +84,9 @@ class ExerciseModel(Base):
         secondary=exercise_muscle_groups,
         back_populates="exercises"
     )
+    
+    # Relationship to exercise history
+    history = relationship("UserExerciseHistoryModel", back_populates="exercise")
 
     def __repr__(self):
-        return f"<Exercise(id={self.id}, name='{self.name}', difficulty={self.difficulty})>" 
+        return f"<Exercise(id={self.id}, name='{self.name}', difficulty={self.difficulty})>"
