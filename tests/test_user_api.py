@@ -24,7 +24,7 @@ class TestUserAPI(unittest.TestCase):
             "role": "admin",
             "iss": "fit-api",
             "iat": datetime.datetime.now(datetime.UTC),
-            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=30)
+            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(30)
         }
         self.admin_token = jwt.encode(token_data, "fit-secret-key", algorithm="HS256")
         
@@ -37,7 +37,6 @@ class TestUserAPI(unittest.TestCase):
         # Test data
         test_user = {
             "email": "test@example.com",
-            "password": "securepass123",
             "name": "Test User",
             "role": "user"
         }
@@ -60,9 +59,9 @@ class TestUserAPI(unittest.TestCase):
     def test_create_user_invalid_data(self):
         # Test with invalid data (missing required fields)
         invalid_user = {
-            "email": "invalid_email",  # Invalid email format
-            "name": "Test User",
-            "role": "user"
+            "email": "invalid_email_format",  # Invalid email format
+            "name": "Test User"
+            # Missing role field
         }
         
         # Make the request with admin token
@@ -73,10 +72,10 @@ class TestUserAPI(unittest.TestCase):
             headers={'Authorization': f'Bearer {self.admin_token}'}
         )
         
-        # Assert response
-        self.assertEqual(response.status_code, 201)
+        # Assert response - should be 400 for invalid data
+        self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertIn('error', data)
 
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()
