@@ -3,12 +3,15 @@ from ..models_dto import WodResponseSchema, WodExerciseSchema, MuscleGroupImpact
 from ..services.fitness_service import (
     get_all_exercises, get_exercise_by_id, get_exercises_by_muscle_group
 )
-from ..services.fitness_coach_service import calculate_intensity, request_wod
+from ..services.fitness_coach_service import calculate_intensity
+from ..services.wod_service import WODService
 from ..services.auth_service import jwt_required
 import datetime
 import random
 
 fitness_bp = Blueprint('fitness', __name__)
+
+wod_service = WODService()
 
 @fitness_bp.route("/fitness/exercises", methods=["GET"])
 def get_exercises():
@@ -41,8 +44,8 @@ def get_wod():
         # Get user email from token
         user_email = g.user_email
         
-        # Get the workout exercises with their muscle groups
-        exercises_with_muscles = request_wod(user_email)
+        # Get the workout exercises with their muscle groups using strangler fig pattern
+        exercises_with_muscles = wod_service.request_wod(user_email)
         
         # Convert to response schema
         wod_exercises = []

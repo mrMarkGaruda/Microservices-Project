@@ -1,39 +1,37 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15
+  db:
+    image: postgres:13
     environment:
-      POSTGRES_DB: fit-db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: fitness_db
+      POSTGRES_USER: fitness_user
+      POSTGRES_PASSWORD: fitness_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/fit/db_init_scripts:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Flask Application
-  app:
-    build: .
+  main-app:
+    build: ./src/fit
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=development
-      - SQLALCHEMY_DATABASE_URL=postgresql://postgres:docker@postgres:5432/fit-db
+      - DATABASE_URL=postgresql://fitness_user:fitness_password@db:5432/fitness_db
+      - COACH_SERVICE_URL=http://coach-service:5001
+      - USE_COACH_MICROSERVICE=true
     depends_on:
-      postgres:
-        condition: service_healthy
+      - db
+      - coach-service
     volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-    restart: unless-stopped
+      - ./src/fit:/app
+
+  coach-service:
+    build: ./src/coach
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
 
 volumes:
   postgres_data:
