@@ -133,3 +133,35 @@ We’ll build a new so called "coach" microservice for our api WOD generation. W
 - Keep an eye on how often errors happen
 
 - Watch how often the system changes back to the old service
+
+
+## Communication Pattern
+
+- It uses existing http calls to get exercise history
+
+- Follows a simple request and response setup to keep things reliable
+
+- Timeouts are in place to stop one failure from crashing everything
+
+- If the main app crashes, the coach service will handle it gracefully and it won't break
+
+
+## Implementation Details
+
+### Environment Variables
+- `USE_COACH_MICROSERVICE`: Turn the coach service on or off
+- `COACH_SERVICE_URL`: Address of the coach service
+- `MONOLITH_URL`: Address of the main app
+
+### API Endpoints
+- Coach: `POST /generate-wod` - Make a workout
+- Coach: `GET /health` - Check if coach is working
+- Monolith: `GET /api/users/{email}/recent-exercises` -  Get user’s past workouts
+
+### Deployment
+- Uses Docker Compose to run the app, database, and coach
+- Coach service runs with 2 or more copies for speed
+- Traffic is shared evenly using load balancing
+- Docker Compose with PostgreSQL, monolith, and coach services
+
+This plan helps us upgrade the system without breaking anything, so everything keeps working well while it gets faster and easier to grow.
