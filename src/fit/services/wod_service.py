@@ -1,11 +1,10 @@
 import os
 import requests
 import logging
-from typing import Dict, Any, Optional, List, Tuple
+from typing import List, Tuple
 from ..services.fitness_coach_service import request_wod as legacy_request_wod, get_recent_exercises
 from ..models_db import ExerciseModel, MuscleGroupModel
 from ..database import db_session
-from ..services.fitness_service import get_exercise_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ class WODService:
         Call coach microservice for WOD generation
         """
         recent_exercise_ids = get_recent_exercises(user_email)
-        excluded_exercises = [ex.name for ex in self._get_exercise_names(recent_exercise_ids)]
+        excluded_exercises = self._get_exercise_names(recent_exercise_ids)
         
         payload = {
             "user_email": user_email,
@@ -51,10 +50,14 @@ class WODService:
         coach_wod = response.json()
         logger.info(f"Coach microservice returned WOD with {len(coach_wod.get('exercises', []))} exercises")
 
+        # For now, still use legacy to get proper database objects
         return legacy_request_wod(user_email)
     
     def _get_exercise_names(self, exercise_ids: List[int]) -> List[str]:
         """Get exercise names from IDs"""
+        if not exercise_ids:
+            return []
+            
         db = db_session()
         try:
             exercises = db.query(ExerciseModel).filter(ExerciseModel.id.in_(exercise_ids)).all()

@@ -9,7 +9,14 @@ DATABASE_URL = os.getenv(
     'postgresql://fitness_user:fitness_password@localhost:5432/fitness_db'
 )
 
-engine = create_engine(DATABASE_URL)
+# Create engine with appropriate settings
+if 'sqlite' in DATABASE_URL:
+    # For SQLite (testing)
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # For PostgreSQL (production)
+    engine = create_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 db_session = scoped_session(SessionLocal)
 
