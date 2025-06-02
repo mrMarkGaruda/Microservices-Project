@@ -4,7 +4,6 @@ import logging
 from typing import List, Tuple
 from ..services.fitness_coach_service import request_wod as legacy_request_wod, get_recent_exercises
 from ..models_db import ExerciseModel, MuscleGroupModel
-from ..database import db_session
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ class WODService:
         else:
             logger.info("Using legacy WOD generation")
             return legacy_request_wod(user_email)
-    
+
     def _request_wod_microservice(self, user_email: str) -> List[Tuple[ExerciseModel, List[Tuple[MuscleGroupModel, bool]]]]:
         """
         Call coach microservice for WOD generation
@@ -52,15 +51,16 @@ class WODService:
 
         # For now, still use legacy to get proper database objects
         return legacy_request_wod(user_email)
-    
+
     def _get_exercise_names(self, exercise_ids: List[int]) -> List[str]:
         """Get exercise names from IDs"""
-        if not exercise_ids:
-            return []
-            
+        from ..database import db_session
         db = db_session()
         try:
-            exercises = db.query(ExerciseModel).filter(ExerciseModel.id.in_(exercise_ids)).all()
-            return [ex.name for ex in exercises]
+            names = []
+            if exercise_ids:
+                exercises = db.query(ExerciseModel).filter(ExerciseModel.id.in_(exercise_ids)).all()
+                names = [ex.name for ex in exercises]
+            return names
         finally:
             db.close()

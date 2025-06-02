@@ -1,0 +1,23 @@
+openapi: 3.0.0
+info:
+  title: Monolith API
+  version: 1.0.0
+paths:
+  /fitness/wod:
+    get:
+      summary: Get Workout of the Day (delegates to coach if enabled)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: WOD generated
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
