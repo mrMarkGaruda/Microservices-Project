@@ -7,11 +7,8 @@ import os
 import logging
 
 from .models_dto import MuscleGroupImpact, WodExerciseSchema, WodResponseSchema
-
-from .fitness_coach_service import calculate_intensity, request_wod
-
+from .fitness_coach_service import calculate_intensity, request_wod, get_wod_for_user
 from .fitness_service import get_exercises_by_muscle_group, get_all_exercises, get_exercise_by_id
-
 from .database import init_db
 from .fitness_data_init import init_fitness_data
 
@@ -66,7 +63,6 @@ def create_wod():
         
     try:
         # Fetch user last workout exercises from monolith
-        # app.logger.debug(f"History exercises: {history_exercises}")
         exercises_with_muscles = request_wod(user_email)
         wod_exercises = []
         for exercise, muscle_groups in exercises_with_muscles:
@@ -102,19 +98,25 @@ def create_wod():
         
         return jsonify(response.model_dump()), 200
 
-        
     except requests.RequestException as e:
         return jsonify({"error": f"Failed to fetch user history: {str(e)}"}), 500
+
+@app.route("/wod/<string:user_email>", methods=["GET"])
+def get_wod(user_email):
+    """
+    Return the generated WOD for a user.
+    """
+    wod = get_wod_for_user(user_email)
+    if wod:
+        return jsonify(wod), 200
+    return jsonify({"error": "No WOD found"}), 404
 
 def run_app():
     """Entry point for the application script"""
     # Initialize the database before starting the app
     init_db()
-
     init_fitness_data()
-    
     app.run(host="0.0.0.0", port=5000, debug=True)
 
 if __name__ == "__main__":
     run_app()
-
