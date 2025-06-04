@@ -1,0 +1,31 @@
+meta {
+  name: 4. Generate new WOD (again) and Verify Different Exercises
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{coach_service_base_url}}/createWod
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  const currentWodExercises = res.getBody().exercises.map(e => e.id);
+  const previousWodExercises = JSON.parse(bru.getEnvVar("scenario_wod_exercises_1"));
+  
+  // Verify that the new WOD is different from the previous one
+  // This is a probabilistic test, as there's a chance of overlap, but highly unlikely for 6 exercises.
+  // A more robust test would involve checking if *any* exercise is different, or if the set of exercises is not identical.
+  const areSame = currentWodExercises.every(id => previousWodExercises.includes(id)) && currentWodExercises.length === previousWodExercises.length;
+  expect(areSame).to.be.false; // Expect them to be different
+}

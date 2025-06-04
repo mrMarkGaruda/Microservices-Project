@@ -1,0 +1,32 @@
+meta {
+  name: 4. Register Workout - Empty Exercises Array
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/register
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}",
+    "exercises": []
+  }
+}
+
+tests {
+  test("Status code is 400", function () {
+      expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

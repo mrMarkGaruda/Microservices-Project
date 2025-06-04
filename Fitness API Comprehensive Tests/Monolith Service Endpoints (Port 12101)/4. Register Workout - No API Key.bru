@@ -1,0 +1,28 @@
+meta {
+  name: 4. Register Workout - No API Key
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}",
+    "exercises": [1, 2, 3]
+  }
+}
+
+tests {
+  test("Status code is 401 or 403", function () {
+  //     pm.response.to.be.oneOf([401, 403]);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

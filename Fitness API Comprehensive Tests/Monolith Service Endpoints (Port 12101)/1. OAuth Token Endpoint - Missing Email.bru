@@ -1,0 +1,27 @@
+meta {
+  name: 1. OAuth Token Endpoint - Missing Email
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{monolith_service_base_url}}/oauth/token
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "password": "{{test_user_password}}"
+  }
+}
+
+tests {
+  test("Status code is 400", function () {
+      expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

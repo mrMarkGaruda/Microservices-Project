@@ -1,0 +1,25 @@
+meta {
+  name: 5. Create Workout of the Day (WOD) - Missing Email
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{coach_service_base_url}}/createWod
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+tests {
+  test("Status code is 400", function () {
+      expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

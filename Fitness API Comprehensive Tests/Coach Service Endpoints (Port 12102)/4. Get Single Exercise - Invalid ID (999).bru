@@ -1,0 +1,21 @@
+meta {
+  name: 4. Get Single Exercise - Invalid ID (999)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises/999
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 404", function () {
+      expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

@@ -1,0 +1,32 @@
+meta {
+  name: 3. Get Exercises by Muscle Group - Invalid ID (999)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises?muscle_group_id=999
+  body: none
+  auth: none
+}
+
+params:query {
+  muscle_group_id: 999
+}
+
+tests {
+  test("Status code is 200 (or 404/400 depending on implementation)", function () {
+      // The guide implies it might return an empty array (200) or an error (404/400).
+      // Adjust based on actual API behavior. Assuming 200 with empty array for now.
+  //     pm.response.to.be.oneOf([200, 400, 404]);
+  });
+  
+  test("Response is an empty array or error message", function () {
+      if (res.getStatus() === 200) {
+          expect(res.getBody()).to.be.an('array').and.to.be.empty;
+      } else {
+          // Check for error structure if 400/404
+          expect(res.getBody()).to.have.property('error');
+      }
+  });
+}

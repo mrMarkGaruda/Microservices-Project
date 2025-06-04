@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Fitness API Comprehensive Tests",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

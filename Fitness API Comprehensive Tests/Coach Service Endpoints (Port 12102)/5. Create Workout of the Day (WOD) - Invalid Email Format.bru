@@ -1,0 +1,27 @@
+meta {
+  name: 5. Create Workout of the Day (WOD) - Invalid Email Format
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{coach_service_base_url}}/createWod
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_email": "invalid-email"
+  }
+}
+
+tests {
+  test("Status code is 400", function () {
+      expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

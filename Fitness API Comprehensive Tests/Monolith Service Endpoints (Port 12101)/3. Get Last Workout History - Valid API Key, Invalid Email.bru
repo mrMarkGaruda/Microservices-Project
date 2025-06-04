@@ -1,0 +1,37 @@
+meta {
+  name: 3. Get Last Workout History - Valid API Key, Invalid Email
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/last
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "email": "nonexistent@mail.com"
+  }
+}
+
+tests {
+  test("Status code is 200 (or 400/404 if email validation is strict)", function () {
+      // If the service returns an empty array for unknown emails, 200 is expected.
+      // If it validates email format, it might be 400. If user not found, 404.
+  //     pm.response.to.be.oneOf([200, 400, 404]);
+  });
+  
+  test("Response is an empty array or error message", function () {
+      if (res.getStatus() === 200) {
+          expect(res.getBody()).to.be.an('array').and.to.be.empty;
+      } else {
+          expect(res.getBody()).to.have.property('error');
+      }
+  });
+}

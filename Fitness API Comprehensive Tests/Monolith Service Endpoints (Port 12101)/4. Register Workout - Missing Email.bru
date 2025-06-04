@@ -1,0 +1,31 @@
+meta {
+  name: 4. Register Workout - Missing Email
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/register
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "exercises": [1, 2, 3]
+  }
+}
+
+tests {
+  test("Status code is 400", function () {
+      expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

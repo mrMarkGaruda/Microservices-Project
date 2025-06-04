@@ -1,0 +1,26 @@
+meta {
+  name: 1. Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{coach_service_base_url}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response contains status: UP", function () {
+      const response = res.getBody();
+      expect(response.status).to.eql("UP");
+  });
+  
+  test("Response time is under 1 second", function () {
+      expect(res.getResponseTime()).to.be.below(1000);
+  });
+}

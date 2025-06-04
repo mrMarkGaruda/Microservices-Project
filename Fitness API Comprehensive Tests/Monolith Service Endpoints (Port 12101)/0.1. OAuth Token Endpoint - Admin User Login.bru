@@ -1,0 +1,29 @@
+meta {
+  name: 0.1. OAuth Token Endpoint - Admin User Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{monolith_service_base_url}}/oauth/token
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{admin_user_email}}",
+    "password": "{{admin_user_password}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  test("Response contains access_token", function () {
+      const response = res.getBody();
+      expect(response).to.have.property('access_token');
+      bru.setEnvVar("admin_access_token", response.access_token);
+  });
+}

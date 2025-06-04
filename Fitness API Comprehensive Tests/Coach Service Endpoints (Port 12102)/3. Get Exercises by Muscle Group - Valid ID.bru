@@ -1,0 +1,38 @@
+meta {
+  name: 3. Get Exercises by Muscle Group - Valid ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises?muscle_group_id={{valid_muscle_group_id}}
+  body: none
+  auth: none
+}
+
+params:query {
+  muscle_group_id: {{valid_muscle_group_id}}
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function () {
+      expect(res.getBody()).to.be.an('array');
+  });
+  
+  test("Filtered results only contain exercises with the specified muscle group", function () {
+      const exercises = res.getBody();
+      const muscleGroupId = bru.getEnvVar("valid_muscle_group_id");
+      exercises.forEach(exercise => {
+          const hasMuscleGroup = exercise.muscle_groups.some(mg => mg.id === muscleGroupId);
+          expect(hasMuscleGroup).to.be.true;
+      });
+  });
+  
+  test("Response time is reasonable", function () {
+      expect(res.getResponseTime()).to.be.below(500); // Adjust as needed
+  });
+}

@@ -1,0 +1,29 @@
+meta {
+  name: 1. Register a workout
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/register
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}",
+    "exercises": [1, 2, 3]
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  expect(res.getBody().success).to.be.true;
+}

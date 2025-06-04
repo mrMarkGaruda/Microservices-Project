@@ -1,0 +1,31 @@
+meta {
+  name: 3. Get Last Workout History - Invalid API Key
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/last
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: invalid_api_key
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 401 or 403", function () {
+  //     pm.response.to.be.oneOf([401, 403]);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

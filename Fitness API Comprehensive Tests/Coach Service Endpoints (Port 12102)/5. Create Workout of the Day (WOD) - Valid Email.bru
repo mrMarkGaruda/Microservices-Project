@@ -1,0 +1,52 @@
+meta {
+  name: 5. Create Workout of the Day (WOD) - Valid Email
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{coach_service_base_url}}/createWod
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response contains exercises and generated_at", function () {
+      const response = res.getBody();
+      expect(response).to.have.all.keys('exercises', 'generated_at');
+      expect(response.exercises).to.be.an('array');
+      expect(response.exercises.length).to.be.at.most(6); // Can be fewer if limited exercises
+      expect(response.generated_at).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+  
+  test("Each exercise has required fields and valid ranges", function () {
+      const exercises = res.getBody().exercises;
+      exercises.forEach(exercise => {
+          expect(exercise).to.have.all.keys('id', 'name', 'description', 'difficulty', 'muscle_groups', 'suggested_weight', 'suggested_reps');
+          expect(exercise.id).to.be.a('number');
+          expect(exercise.name).to.be.a('string');
+          expect(exercise.suggested_weight).to.be.a('number').and.to.be.within(5.0, 50.0);
+          expect(exercise.suggested_reps).to.be.a('number').and.to.be.within(8, 15);
+          exercise.muscle_groups.forEach(mg => {
+              expect(mg.intensity).to.be.a('number').and.to.be.within(0.0, 1.0);
+          });
+      });
+  });
+  
+  test("Response time is reasonable (1-5 seconds)", function () {
+      expect(res.getResponseTime()).to.be.within(1000, 5000); // Adjust based on actual performance
+  });
+  
+  // Store the generated WOD for later comparison in Scenario 3
+  bru.setEnvVar("last_generated_wod", JSON.stringify(res.getBody().exercises.map(e => e.id)));
+}

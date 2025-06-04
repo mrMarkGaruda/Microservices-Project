@@ -1,0 +1,44 @@
+meta {
+  name: 3. Get Last Workout History - Valid API Key and Email
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/last
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function () {
+      expect(res.getBody()).to.be.an('array');
+  });
+  
+  test("Each exercise has id and completed_at fields", function () {
+      const workouts = res.getBody();
+      workouts.forEach(workout => {
+          expect(workout).to.have.all.keys('id', 'name', 'completed_at');
+          expect(workout.id).to.be.a('number');
+          expect(workout.name).to.be.a('string');
+          expect(workout.completed_at).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+      });
+  });
+  
+  // Store last workout IDs for comparison in Scenario 3
+  bru.setEnvVar("last_monolith_workout_ids", JSON.stringify(res.getBody().map(w => w.id)));
+}

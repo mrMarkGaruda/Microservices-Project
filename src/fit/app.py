@@ -1,10 +1,15 @@
 import os
+import sys
 from flask import Flask
-from .blueprints.auth import auth_bp
-from .blueprints.users import user_bp
-from .blueprints.fitness import fitness_bp
-from .database import init_db
-from .services.fitness_data_init import init_fitness_data
+
+# Add the current directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from blueprints.auth import auth_bp
+from blueprints.users import user_bp
+from blueprints.fitness import fitness_bp
+from database import init_db
+from services.fitness_data_init import init_fitness_data
 
 def create_app(config=None):
     """Application factory pattern for testing"""
@@ -33,13 +38,19 @@ app = create_app()
 
 def run_app():
     """Entry point for the application script"""
-    # Initialize the database before starting the app
-    init_db()
+    try:
+        # Initialize the database before starting the app
+        init_db()
+        
+        # Initialize fitness data
+        init_fitness_data()
+        
+        print("✅ Database initialized successfully")
+    except Exception as e:
+        print(f"⚠️ Database initialization warning: {e}")
     
-    # Initialize fitness data
-    init_fitness_data()
-    
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    print("🚀 Starting monolith service on port 5000...")
+    app.run(host="0.0.0.0", port=5000, debug=False)
 
 if __name__ == "__main__":
     run_app()

@@ -1,0 +1,27 @@
+meta {
+  name: 4. Get Single Exercise - Valid ID
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises/{{valid_exercise_id}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response contains all required fields", function () {
+      const exercise = res.getBody();
+      expect(exercise).to.have.all.keys('id', 'name', 'description', 'difficulty', 'equipment', 'instructions', 'muscle_groups');
+      expect(exercise.id).to.eql(bru.getEnvVar("valid_exercise_id"));
+      expect(exercise.muscle_groups).to.be.an('array');
+      exercise.muscle_groups.forEach(mg => {
+          expect(mg).to.have.all.keys('id', 'name', 'body_part', 'description', 'is_primary');
+      });
+  });
+}

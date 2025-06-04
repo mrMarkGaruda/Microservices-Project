@@ -1,27 +1,68 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: fitness_db
+      POSTGRES_USER: fitness_user
+      POSTGRES_PASSWORD: fitness_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/fit/db_init_scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitness_user -d fitness_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   monolith:
     build:
-      context: ./src/fit
+      context: .
+      dockerfile: docker/Dockerfile
     container_name: monolith
     ports:
-      - "5000:5000"
+      - "12101:5000"  # Changed to match Bruno tests
     environment:
       - FLASK_ENV=production
       - USE_COACH_MICROSERVICE=true
       - COACH_SERVICE_URL=http://coach:5001
       - SECRET_KEY=fit-secret-key
+      - DATABASE_URL=postgresql://fitness_user:fitness_password@postgres:5432/fitness_db
+      - BOOTSTRAP_SECRET_KEY=bootstrap-secret-key
     depends_on:
-      - coach
+      postgres:
+        condition: service_healthy
+      coach:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   coach:
     build:
-      context: ./src/coach
-    container_name: coach
-    ports:
-      - "5001:5001"
+      context: .
+      dockerfile: src/coach/Dockerfile
     environment:
       - FLASK_ENV=production
-    deploy:
-      replicas: 2
+      - DATABASE_URL=postgresql://fitness_user:fitness_password@postgres:5432/fitness_db
+    ports:
+      - "12102:5001"  # Changed to match Bruno tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  postgres_data:

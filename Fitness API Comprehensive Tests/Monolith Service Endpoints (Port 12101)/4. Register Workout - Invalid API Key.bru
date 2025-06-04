@@ -1,0 +1,32 @@
+meta {
+  name: 4. Register Workout - Invalid API Key
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/register
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: wrong_key
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}",
+    "exercises": [1, 2, 3]
+  }
+}
+
+tests {
+  test("Status code is 401 or 403", function () {
+  //     pm.response.to.be.oneOf([401, 403]);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

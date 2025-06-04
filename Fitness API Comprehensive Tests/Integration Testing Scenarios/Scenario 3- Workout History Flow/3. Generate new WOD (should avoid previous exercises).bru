@@ -1,0 +1,31 @@
+meta {
+  name: 3. Generate new WOD (should avoid previous exercises)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{coach_service_base_url}}/createWod
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  const newWodExercises = res.getBody().exercises.map(e => e.id);
+  const lastWorkoutExercises = JSON.parse(bru.getEnvVar("scenario_last_workout_ids"));
+  
+  // Verify that the new WOD avoids exercises from the last workout
+  // This test assumes the WOD generation logic actively avoids recently completed exercises.
+  // If the avoidance is not guaranteed for all exercises, this test might need adjustment.
+  const hasOverlap = newWodExercises.some(id => lastWorkoutExercises.includes(id));
+  expect(hasOverlap).to.be.false; // Expect no overlap
+}

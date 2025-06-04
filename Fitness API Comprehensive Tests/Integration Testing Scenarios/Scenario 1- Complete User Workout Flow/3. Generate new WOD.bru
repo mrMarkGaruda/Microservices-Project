@@ -1,0 +1,25 @@
+meta {
+  name: 3. Generate new WOD
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{coach_service_base_url}}/createWod
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "user_email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  expect(res.getBody().exercises).to.be.an('array');
+  bru.setEnvVar("scenario_wod_exercises_1", JSON.stringify(res.getBody().exercises.map(e => e.id)));
+}

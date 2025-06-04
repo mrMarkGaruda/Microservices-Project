@@ -1,0 +1,28 @@
+meta {
+  name: 3. Filter exercises by muscle group
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises?muscle_group_id={{valid_muscle_group_id}}
+  body: none
+  auth: none
+}
+
+params:query {
+  muscle_group_id: {{valid_muscle_group_id}}
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  const exercises = res.getBody();
+  const muscleGroupId = bru.getEnvVar("valid_muscle_group_id");
+  expect(exercises).to.be.an('array');
+  exercises.forEach(exercise => {
+      const hasMuscleGroup = exercise.muscle_groups.some(mg => mg.id === muscleGroupId);
+      expect(hasMuscleGroup).to.be.true;
+  });
+}

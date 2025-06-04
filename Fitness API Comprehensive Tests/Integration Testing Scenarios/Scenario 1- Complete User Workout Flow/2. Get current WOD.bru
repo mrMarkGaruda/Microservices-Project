@@ -1,0 +1,22 @@
+meta {
+  name: 2. Get current WOD
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{monolith_service_base_url}}/fitness/wod
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{scenario_access_token}}
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  expect(res.getBody().exercises).to.be.an('array');
+}

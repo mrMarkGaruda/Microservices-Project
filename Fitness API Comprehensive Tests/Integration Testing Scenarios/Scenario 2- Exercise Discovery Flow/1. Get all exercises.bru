@@ -1,0 +1,18 @@
+meta {
+  name: 1. Get all exercises
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  expect(res.getBody()).to.be.an('array').and.to.not.be.empty;
+}

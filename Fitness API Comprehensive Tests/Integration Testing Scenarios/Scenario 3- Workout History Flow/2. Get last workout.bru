@@ -1,0 +1,30 @@
+meta {
+  name: 2. Get last workout
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/last
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  const lastWorkout = res.getBody();
+  expect(lastWorkout).to.be.an('array').and.to.not.be.empty;
+  bru.setEnvVar("scenario_last_workout_ids", JSON.stringify(lastWorkout.map(e => e.id)));
+}

@@ -1,0 +1,47 @@
+meta {
+  name: 2. Get All Exercises
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function () {
+      expect(res.getBody()).to.be.an('array');
+  });
+  
+  test("Each exercise has required fields and valid difficulty", function () {
+      const exercises = res.getBody();
+      expect(exercises.length).to.be.at.least(18); // Based on SQL script
+      exercises.forEach(exercise => {
+          expect(exercise).to.have.all.keys('id', 'name', 'description', 'difficulty', 'equipment', 'instructions', 'muscle_groups');
+          expect(exercise.id).to.be.a('number');
+          expect(exercise.name).to.be.a('string');
+          expect(exercise.difficulty).to.be.a('number').and.to.be.within(1, 5);
+          expect(exercise.muscle_groups).to.be.an('array');
+          exercise.muscle_groups.forEach(mg => {
+              expect(mg).to.have.all.keys('id', 'name', 'body_part', 'description', 'is_primary');
+              expect(mg.id).to.be.a('number');
+              expect(mg.name).to.be.a('string');
+              expect(mg.body_part).to.be.a('string');
+              expect(mg.is_primary).to.be.a('boolean');
+          });
+      });
+  });
+  
+  // Test with empty database (manual test setup required, not automated here)
+  // // pm.test("Returns empty array if database is empty", function () {
+  //     // This test requires a specific setup where the database is empty.
+  //     // The current test assumes a populated database.
+  // //     // If run against an empty DB, uncomment and verify: pm.expect(pm.response.json()).to.be.empty;
+  // });
+}

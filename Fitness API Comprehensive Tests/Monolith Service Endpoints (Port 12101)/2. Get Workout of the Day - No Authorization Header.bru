@@ -1,0 +1,21 @@
+meta {
+  name: 2. Get Workout of the Day - No Authorization Header
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{monolith_service_base_url}}/fitness/wod
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401", function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

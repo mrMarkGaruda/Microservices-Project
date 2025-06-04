@@ -1,0 +1,41 @@
+meta {
+  name: 2. Get Workout of the Day - Valid Token
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{monolith_service_base_url}}/fitness/wod
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response contains exercises, date, duration_minutes", function () {
+      const response = res.getBody();
+      expect(response).to.have.all.keys('exercises', 'date', 'duration_minutes');
+      expect(response.exercises).to.be.an('array').and.to.not.be.empty;
+      expect(response.date).to.match(/^\d{4}-\d{2}-\d{2}$/);
+      expect(response.duration_minutes).to.be.a('number').and.to.be.above(0);
+  });
+  
+  test("Each exercise has required fields", function () {
+      const exercises = res.getBody().exercises;
+      exercises.forEach(exercise => {
+          expect(exercise).to.have.all.keys('id', 'name', 'sets', 'reps', 'weight');
+          expect(exercise.id).to.be.a('number');
+          expect(exercise.name).to.be.a('string');
+          expect(exercise.sets).to.be.a('number');
+          expect(exercise.reps).to.be.a('number');
+          expect(exercise.weight).to.be.a('number');
+      });
+  });
+}

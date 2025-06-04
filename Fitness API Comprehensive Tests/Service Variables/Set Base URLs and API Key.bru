@@ -1,0 +1,31 @@
+meta {
+  name: Set Base URLs and API Key
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://postman-echo.com/get
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  // Set your base URLs here
+  bru.setEnvVar("coach_service_base_url", "http://localhost:12102");
+  bru.setEnvVar("monolith_service_base_url", "http://localhost:12101");
+  
+  // Set your API Keys here
+  bru.setEnvVar("api_key", "some_very_secret_key"); // FIT API Key (X-API-Key)
+  bru.setEnvVar("bootstrap_key", "bootstrap-secret-key"); // Bootstrap Key (X-Bootstrap-Key)
+  
+  // Set user credentials (ensure these match your Bruno secret variables if applicable)
+  bru.setEnvVar("admin_user_email", "jane.doe@mail.com");
+  bru.setEnvVar("admin_user_password", "your-admin-pass"); // IMPORTANT: Set this in your Postman environment or collection variables
+  bru.setEnvVar("test_user_email", "john.doe@mail.com");
+  bru.setEnvVar("test_user_password", "your-user-pass"); // IMPORTANT: Set this in your Postman environment or collection variables
+  
+  // Set valid IDs for testing
+  bru.setEnvVar("valid_exercise_id", 1);
+  bru.setEnvVar("valid_muscle_group_id", 1);
+}

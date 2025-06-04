@@ -1,0 +1,25 @@
+meta {
+  name: 1. Authenticate user
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{monolith_service_base_url}}/oauth/token
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}",
+    "password": "{{test_user_password}}"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  bru.setEnvVar("scenario_access_token", res.getBody().access_token);
+}

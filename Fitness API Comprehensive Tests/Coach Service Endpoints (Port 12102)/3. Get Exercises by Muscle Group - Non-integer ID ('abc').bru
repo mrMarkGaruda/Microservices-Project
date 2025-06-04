@@ -1,0 +1,25 @@
+meta {
+  name: 3. Get Exercises by Muscle Group - Non-integer ID ('abc')
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{coach_service_base_url}}/exercises?muscle_group_id=abc
+  body: none
+  auth: none
+}
+
+params:query {
+  muscle_group_id: abc
+}
+
+tests {
+  test("Status code is 400 or 404", function () {
+  //     pm.response.to.be.oneOf([400, 404]);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

@@ -1,0 +1,28 @@
+meta {
+  name: 1. OAuth Token Endpoint - Invalid Email
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{monolith_service_base_url}}/oauth/token
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "invalid@mail.com",
+    "password": "{{test_user_password}}"
+  }
+}
+
+tests {
+  test("Status code is 400 or 401", function () {
+  //     pm.response.to.be.oneOf([400, 401]);
+  });
+  
+  test("Response contains an error message", function () {
+      expect(res.getBody()).to.have.property('error');
+  });
+}

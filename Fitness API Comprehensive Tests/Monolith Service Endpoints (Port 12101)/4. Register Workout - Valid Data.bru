@@ -1,0 +1,39 @@
+meta {
+  name: 4. Register Workout - Valid Data
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{monolith_service_base_url}}/workouts/register
+  body: json
+  auth: none
+}
+
+headers {
+  X-API-Key: {{api_key}}
+}
+
+body:json {
+  {
+    "email": "{{test_user_email}}",
+    "exercises": [1, 5, 10, 15, 8, 12]
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response indicates success and contains workout_id, registered_at", function () {
+      const response = res.getBody();
+      expect(response).to.have.all.keys('success', 'workout_id', 'registered_at');
+      expect(response.success).to.be.true;
+      expect(response.workout_id).to.be.a('number').and.to.be.above(0);
+      expect(response.registered_at).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+  
+  // Store the workout ID for verification
+  bru.setEnvVar("registered_workout_id", res.getBody().workout_id);
+}
