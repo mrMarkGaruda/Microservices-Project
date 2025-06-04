@@ -28,6 +28,10 @@ class UserProfileSchema(BaseModel):
 class UserProfileResponseSchema(BaseModel):
     email: str
     name: str
+    weight: Optional[float] = None
+    height: Optional[float] = None
+    fitness_goal: Optional[str] = None
+    onboarded: Optional[str] = None
 
 class UserProfileUpdate(BaseModel):
     weight: Optional[float] = None

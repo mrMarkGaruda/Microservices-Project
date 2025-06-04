@@ -4,7 +4,7 @@ from typing import Optional, Callable
 from functools import wraps
 from flask import request, jsonify, g
 from src.fit.models_db import UserModel
-from src.fit.database import db_session
+from src.fit.database import get_db_session
 from src.fit.services.user_service import hash_password
 
 
@@ -15,7 +15,7 @@ def authenticate_user(email: str, password: str) -> Optional[UserModel]:
     """
     Authenticate a user by email and password
     """
-    db = db_session()
+    db = get_db_session()()
     try:
         user = db.query(UserModel).filter(UserModel.email == email).first()
         if not user:

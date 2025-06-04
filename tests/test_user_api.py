@@ -1,27 +1,27 @@
 import unittest
 import tempfile
 import os
-from src.fit.app import create_app
-from src.fit.database import init_db, db_session, Base
-from src.fit.models_db import UserModel
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 import json
 import jwt
 import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 class TestUserAPI(unittest.TestCase):
     def setUp(self):
         # Create a temporary database file
         self.db_fd, self.db_path = tempfile.mkstemp()
-        
-        # Configure the app for testing with SQLite
+        os.environ['DATABASE_URL'] = f'sqlite:///{self.db_path}'
+        from src.fit.database import reload_engine_and_session
+        reload_engine_and_session()
+        from src.fit.app import create_app
+        from src.fit.database import init_db, db_session, Base
+        from src.fit.models_db import UserModel
         self.app = create_app({
             'TESTING': True,
             'DATABASE_URL': f'sqlite:///{self.db_path}',
             'SECRET_KEY': 'test-secret-key'
         })
-        
         self.client = self.app.test_client()
         
         # Set up test database with SQLite engine
@@ -42,6 +42,12 @@ class TestUserAPI(unittest.TestCase):
             "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
         }
         self.admin_token = jwt.encode(token_data, "fit-secret-key", algorithm="HS256")
+        
+        # Import services here to avoid circular imports
+        from src.fit.services.user_service import create_user as create_user_service
+        from src.fit.services.user_service import get_all_users as get_all_users_service
+        from src.fit.services.user_service import update_user_profile, get_user_profile
+        from src.fit.services.auth_service import admin_required, jwt_required
         
     def tearDown(self):
         # Clean up the database after each test

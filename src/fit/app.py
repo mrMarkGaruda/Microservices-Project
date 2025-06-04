@@ -1,6 +1,6 @@
 import os
 import sys
-from flask import Flask
+from flask import Flask, render_template_string
 
 # Load environment variables from .env if present
 try:
@@ -37,6 +37,19 @@ def create_app(config=None):
     @app.route("/health")
     def health():
         return {"status": "UP"}
+    
+    @app.route("/")
+    def index():
+        return render_template_string('''
+            <html>
+            <head><title>Fitness API</title></head>
+            <body>
+                <h1>Welcome to the Fitness API</h1>
+                <p>Use the API endpoints or <a href="/health">check health</a>.</p>
+                <p>Database: <a href="http://localhost:5050" target="_blank">pgAdmin (localhost:5050)</a></p>
+            </body>
+            </html>
+        ''')
     
     return app
 

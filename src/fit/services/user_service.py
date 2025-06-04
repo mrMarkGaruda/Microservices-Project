@@ -1,6 +1,6 @@
 from src.fit.models_dto import UserSchema, UserResponseSchema, UserProfileSchema, UserProfileResponseSchema
 from src.fit.models_db import UserModel
-from src.fit.database import db_session
+from src.fit.database import get_db_session
 from typing import List, Optional
 import random
 import string
@@ -32,7 +32,7 @@ def create_user(user: UserSchema) -> UserResponseSchema:
     )
     
     # Add and commit to database
-    db = db_session()
+    db = get_db_session()()
     try:
         db.add(db_user)
         db.commit()
@@ -57,7 +57,7 @@ def get_all_users() -> List[UserSchema]:
     """
     Retrieve all users from the database
     """
-    db = db_session()
+    db = get_db_session()()
     try:
         # Query all users from the database
         db_users = db.query(UserModel).all()
@@ -78,7 +78,7 @@ def update_user_profile(email: str, profile: UserProfileSchema) -> Optional[User
     """
     Update user profile with weight, height, and fitness goal
     """
-    db = db_session()
+    db = get_db_session()()
     try:
         # Find the user
         user = db.query(UserModel).filter(UserModel.email == email).first()
@@ -113,7 +113,7 @@ def get_user_profile(email: str) -> Optional[UserProfileResponseSchema]:
     """
     Get user profile information
     """
-    db = db_session()
+    db = get_db_session()()
     try:
         user = db.query(UserModel).filter(UserModel.email == email).first()
         if not user:

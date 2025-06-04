@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from src.fit.models_db import ExerciseModel, MuscleGroupModel, exercise_muscle_groups, UserExerciseHistoryModel
-from src.fit.database import db_session
+from src.fit.database import get_db_session
 from datetime import datetime, timedelta
 import random
 from time import time
@@ -30,7 +30,7 @@ def get_recent_exercises(user_email: str, days_back: int = 3) -> List[int]:
     """
     Get exercise IDs that the user has performed in the last N days.
     """
-    db = db_session()
+    db = get_db_session()()
     try:
         cutoff_date = datetime.utcnow() - timedelta(days=days_back)
         
@@ -47,7 +47,7 @@ def save_exercise_history(user_email: str, exercise_id: int, weight: float, reps
     """
     Save the user's exercise to history.
     """
-    db = db_session()
+    db = get_db_session()()
     try:
         history_entry = UserExerciseHistoryModel(
             user_email=user_email,
@@ -77,7 +77,7 @@ def request_wod(user_email: str) -> List[Tuple[ExerciseModel, List[Tuple[MuscleG
     # Simulate heavy computation (AI model processing, complex calculations, etc.) for 1-5 seconds
     heavy_computation(random.randint(1, 5)) # DO NOT REMOVE THIS LINE
     
-    db = db_session()
+    db = get_db_session()()
     try:
         # Get exercises the user has done recently
         recent_exercise_ids = get_recent_exercises(user_email)

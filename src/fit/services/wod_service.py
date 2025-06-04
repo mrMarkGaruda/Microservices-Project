@@ -4,6 +4,7 @@ import logging
 from typing import List, Tuple
 from src.fit.services.fitness_coach_service import request_wod as legacy_request_wod, get_recent_exercises
 from src.fit.models_db import ExerciseModel, MuscleGroupModel
+from src.fit.database import get_db_session
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,7 @@ class WODService:
 
     def _get_exercise_names(self, exercise_ids: List[int]) -> List[str]:
         """Get exercise names from IDs"""
-        from src.fit.database import db_session
-        db = db_session()
+        db = get_db_session()()
         try:
             names = []
             if exercise_ids:

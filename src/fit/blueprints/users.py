@@ -5,7 +5,7 @@ from src.fit.services.user_service import create_user as create_user_service
 from src.fit.services.user_service import get_all_users as get_all_users_service
 from src.fit.services.user_service import update_user_profile, get_user_profile
 from src.fit.services.auth_service import admin_required, jwt_required
-from src.fit.database import db_session
+from src.fit.database import get_db_session
 from src.fit.models_db import UserModel
 import os
 
@@ -18,12 +18,14 @@ BOOTSTRAP_KEY = os.environ.get("BOOTSTRAP_KEY", "bootstrap-secret-key")
 def create_user():
     try:
         user_data = request.get_json()
-        user = UserSchema.model_validate(user_data)
+        user = UserSchema(**user_data)
         created_user = create_user_service(user)
-        return jsonify(created_user.model_dump()), 201
+        return jsonify(created_user.dict()), 201
     except ValidationError as e:
         return jsonify({"error": "Invalid user data", "details": e.errors()}), 400
     except Exception as e:
+        import traceback
+        print('Exception in create_user:', traceback.format_exc())
         return jsonify({"error": "Error creating user", "details": str(e)}), 500
 
 @user_bp.route("/users", methods=["GET"])
@@ -44,7 +46,7 @@ def create_bootstrap_admin():
             return jsonify({"error": "Invalid bootstrap key"}), 401
             
         # Check if admin already exists to prevent multiple bootstraps
-        db = db_session()
+        db = get_db_session()()
         admin_exists = db.query(UserModel).filter(UserModel.role == "admin").first() is not None
         db.close()
         
@@ -55,7 +57,7 @@ def create_bootstrap_admin():
         admin_data = request.get_json()
         admin_data["role"] = "admin"  # Ensure role is admin
         
-        admin_user = UserSchema.model_validate(admin_data)
+        admin_user = UserSchema(**admin_data)
         created_admin = create_user_service(admin_user)
         
         return jsonify(created_admin.model_dump()), 201
