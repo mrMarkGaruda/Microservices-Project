@@ -26,6 +26,8 @@ services:
     container_name: monolith
     ports:
       - "12101:5000"  # Changed to match Bruno tests
+    env_file:
+      - .env
     environment:
       - FLASK_ENV=production
       - USE_COACH_MICROSERVICE=true

@@ -1,6 +1,6 @@
-from ..database import db_session
-from ..models_db import MuscleGroupModel, ExerciseModel, exercise_muscle_groups
-from ..models_dto import MuscleGroup, Exercise, MuscleGroupWithPrimary
+from src.fit.database import db_session
+from src.fit.models_db import MuscleGroupModel, ExerciseModel, exercise_muscle_groups
+from src.fit.models_dto import MuscleGroup, Exercise, MuscleGroupWithPrimary
 from sqlalchemy import select, join
 
 def get_all_muscle_groups():
@@ -200,4 +200,4 @@ def get_exercises_by_muscle_group(muscle_group_id: int):
             
         return result
     finally:
-        db.close() 
+        db.close()

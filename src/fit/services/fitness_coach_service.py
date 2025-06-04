@@ -1,6 +1,6 @@
 from typing import List, Tuple
-from ..models_db import ExerciseModel, MuscleGroupModel, exercise_muscle_groups, UserExerciseHistoryModel
-from ..database import db_session
+from src.fit.models_db import ExerciseModel, MuscleGroupModel, exercise_muscle_groups, UserExerciseHistoryModel
+from src.fit.database import db_session
 from datetime import datetime, timedelta
 import random
 from time import time

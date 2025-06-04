@@ -1,6 +1,6 @@
-from ..models_dto import UserSchema, UserResponseSchema, UserProfileSchema, UserProfileResponseSchema
-from ..models_db import UserModel
-from ..database import db_session
+from src.fit.models_dto import UserSchema, UserResponseSchema, UserProfileSchema, UserProfileResponseSchema
+from src.fit.models_db import UserModel
+from src.fit.database import db_session
 from typing import List, Optional
 import random
 import string

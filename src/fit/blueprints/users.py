@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify, g
 from pydantic import ValidationError
-from ..models_dto import UserSchema, UserResponseSchema, UserProfileSchema, UserProfileResponseSchema
-from ..services.user_service import create_user as create_user_service
-from ..services.user_service import get_all_users as get_all_users_service
-from ..services.user_service import update_user_profile, get_user_profile
-from ..services.auth_service import admin_required, jwt_required
-from ..database import db_session
-from ..models_db import UserModel
+from src.fit.models_dto import UserSchema, UserResponseSchema, UserProfileSchema, UserProfileResponseSchema
+from src.fit.services.user_service import create_user as create_user_service
+from src.fit.services.user_service import get_all_users as get_all_users_service
+from src.fit.services.user_service import update_user_profile, get_user_profile
+from src.fit.services.auth_service import admin_required, jwt_required
+from src.fit.database import db_session
+from src.fit.models_db import UserModel
 import os
 
 user_bp = Blueprint('users', __name__)

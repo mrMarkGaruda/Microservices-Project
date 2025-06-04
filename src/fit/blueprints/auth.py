@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from pydantic import ValidationError
-from ..models_dto import LoginSchema, TokenSchema
-from ..services.auth_service import authenticate_user, create_access_token
+from src.fit.models_dto import LoginSchema, TokenSchema
+from src.fit.services.auth_service import authenticate_user, create_access_token
 import datetime
 
 auth_bp = Blueprint('auth', __name__)

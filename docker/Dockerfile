@@ -14,9 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire src directory
 COPY src/ ./src/
 
-# Copy other necessary files
-COPY .env ./
-
 # Set Python path to include src directory
 ENV PYTHONPATH=/app/src
 

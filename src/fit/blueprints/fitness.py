@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify, g
-from ..models_dto import WodResponseSchema, WodExerciseSchema, MuscleGroupImpact
-from ..services.fitness_service import (
+from src.fit.models_dto import WodResponseSchema, WodExerciseSchema, MuscleGroupImpact
+from src.fit.services.fitness_service import (
     get_all_exercises, get_exercise_by_id, get_exercises_by_muscle_group
 )
-from ..services.fitness_coach_service import calculate_intensity
-from ..services.wod_service import WODService
-from ..services.auth_service import jwt_required
+from src.fit.services.fitness_coach_service import calculate_intensity
+from src.fit.services.wod_service import WODService
+from src.fit.services.auth_service import jwt_required
 import datetime
 import random
 

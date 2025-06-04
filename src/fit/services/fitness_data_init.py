@@ -1,7 +1,7 @@
 import os
 import psycopg2
 from sqlalchemy import text
-from ..database import engine
+from src.fit.database import engine
 
 def init_fitness_data():
     """
@@ -30,4 +30,4 @@ def init_fitness_data():
 
 if __name__ == "__main__":
     # This allows the script to be run directly
-    init_fitness_data() 
+    init_fitness_data()

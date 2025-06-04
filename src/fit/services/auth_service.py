@@ -3,9 +3,9 @@ import datetime
 from typing import Optional, Callable
 from functools import wraps
 from flask import request, jsonify, g
-from ..models_db import UserModel
-from ..database import db_session
-from ..services.user_service import hash_password
+from src.fit.models_db import UserModel
+from src.fit.database import db_session
+from src.fit.services.user_service import hash_password
 
 
 SECRET_KEY = "fit-secret-key" 
@@ -117,4 +117,4 @@ def jwt_required(f: Callable) -> Callable:
             
         return f(*args, **kwargs)
     
-    return decorated_function 
+    return decorated_function
