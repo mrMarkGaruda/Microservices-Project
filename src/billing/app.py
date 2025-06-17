@@ -1,6 +1,8 @@
 import logging
 from flask import Flask, jsonify
 from .database import init_db, db_session
+from .blueprints.billing_blueprint import billing_bp
+from .services.billing_service import seed_initial_plans
 import os
 import sys
 
@@ -15,20 +17,18 @@ logger = logging.getLogger(__name__)
 def create_app():
     app = Flask(__name__)
     app.logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
-
     with app.app_context():
         init_db()
-
+        seed_initial_plans()
+    app.register_blueprint(billing_bp)
     @app.route("/health")
     def health():
         logger.debug("Billing service health check endpoint called")
         return jsonify({"status": "UP", "service": "Billing Service"})
-
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         db_session.remove()
         logger.debug("Billing DB session removed.")
-    
     return app
 
 app = create_app()
