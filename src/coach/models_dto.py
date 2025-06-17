@@ -1,51 +1,19 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Union
+from pydantic import BaseModel
+from typing import List, Optional
 from datetime import datetime
 
-# Muscle Group DTOs
-class MuscleGroupBase(BaseModel):
-    name: str
-    body_part: str
-    description: Optional[str] = None
+class WorkoutStatResponseItemSchema(BaseModel):
+    exercise_id: int
+    workout_id: int
+    performed_timestamp: datetime
+    reps: Optional[int] = None
+    weight: Optional[float] = None
+    duration_seconds: Optional[int] = None
 
-class MuscleGroup(MuscleGroupBase):
-    id: int
+    class Config:
+        orm_mode = True # Pydantic V1
+        # from_attributes = True # Pydantic V2
 
-# Exercise DTOs
-class ExerciseMuscleGroup(BaseModel):
-    muscle_group_id: int
-    is_primary: bool = False
-
-class ExerciseBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    difficulty: int = Field(..., ge=1, le=5)
-    equipment: Optional[str] = None
-    instructions: Optional[str] = None
-
-class MuscleGroupWithPrimary(MuscleGroup):
-    is_primary: bool
-
-class Exercise(ExerciseBase):
-    id: int
-    muscle_groups: List[MuscleGroupWithPrimary] = []
-
-class MuscleGroupImpact(BaseModel):
-    id: int
-    name: str
-    body_part: str
-    is_primary: bool
-    intensity: float  # Calculated based on exercise difficulty (0.0 to 1.0)
-
-class WodExerciseSchema(BaseModel):
-    id: int
-    name: str
-    description: str
-    difficulty: int
-    muscle_groups: List[MuscleGroupImpact]
-    suggested_weight: float = 0.0  # Default weight suggestion
-    suggested_reps: int = 10  # Default number of reps
-
-class WodResponseSchema(BaseModel):
-    exercises: List[WodExerciseSchema]
-    generated_at: datetime
+class UserWorkoutStatsResponseSchema(BaseModel):
+    user_email: str
+    stats: List[WorkoutStatResponseItemSchema]

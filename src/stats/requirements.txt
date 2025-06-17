@@ -1,0 +1,5 @@
+Flask==2.3.3 # Or any recent stable version
+SQLAlchemy==2.0.23
+psycopg2-binary==2.9.9
+pydantic==1.10.13 # Or Pydantic v2 if preferred, adjust orm_mode/from_attributes
+pika==1.3.2 # For RabbitMQ, Q will use this

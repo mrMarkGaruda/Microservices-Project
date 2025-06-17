@@ -2,9 +2,14 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
+import logging
 
-# Database connection settings from docker-compose.yml
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+logger = logging.getLogger(__name__)
+
+SQLALCHEMY_DATABASE_URL = os.getenv("STATS_DATABASE_URL")
+if not SQLALCHEMY_DATABASE_URL:
+    logger.error("STATS_DATABASE_URL environment variable not set.")
+    raise ValueError("STATS_DATABASE_URL environment variable not set.")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -12,7 +17,6 @@ db_session = scoped_session(SessionLocal)
 
 Base = declarative_base()
 
-# Dependency to get db session
 def get_db():
     db = db_session()
     try:
@@ -21,7 +25,9 @@ def get_db():
         db.close()
 
 def init_db():
-    # Import all models here so they are registered with the metadata
-    from .models_db import MuscleGroupModel, ExerciseModel
-    
-    Base.metadata.create_all(bind=engine) 
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Stats database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Error initializing stats database: {e}", exc_info=True)
+        raise

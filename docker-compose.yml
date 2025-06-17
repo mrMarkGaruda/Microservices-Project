@@ -20,7 +20,6 @@ services:
       - RABBITMQ_DEFAULT_PASS=docker
     networks:
       - fit
-    # entrypoint: ["flask", "run"]
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -90,8 +89,8 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - "12104:5672" # AMQP protocol port
-      - "12105:15672" # Management interface port
+      - "12104:5672"
+      - "12105:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=rabbit
       - RABBITMQ_DEFAULT_PASS=docker
@@ -102,6 +101,56 @@ services:
       retries: 5
     networks:
       - fit
+      - fitnet
+
+  stats_db:
+    image: postgres:15
+    container_name: stats_db
+    environment:
+      POSTGRES_USER: stats_user
+      POSTGRES_PASSWORD: stats_password
+      POSTGRES_DB: stats_db
+    volumes:
+      - stats_db_data:/var/lib/postgresql/data
+    ports:
+      - "12107:5432"
+    networks:
+      - fitnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stats_user -d stats_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  stats:
+    build:
+      context: ./src/stats
+      dockerfile: Dockerfile
+    container_name: stats_service
+    depends_on:
+      stats_db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    ports:
+      - "12106:5002"
+    environment:
+      - STATS_DATABASE_URL=postgresql://stats_user:stats_password@stats_db:5432/stats_db
+      - STATS_SERVICE_PORT=5002
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-rabbit}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-docker}
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./src/stats:/app
+    networks:
+      - fitnet
+    restart: unless-stopped
 
 networks:
   fit:
+  fitnet:
+    driver: bridge
+
+volumes:
+  stats_db_data:
