@@ -1,23 +1,24 @@
-# Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+# Use a slim Python image for a production-ready build
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
+# Prevent Python from writing pyc files to disk and ensure stdout/stderr is unbuffered
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH=/app
 
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
-
+# Install dependencies
 COPY pyproject.toml uv.lock ./
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN uv sync
-
+# Copy the application code
 COPY main_coach.py /app/main_coach.py
+COPY src /app/src
 
-ENV FLASK_ENV=development
-# ENV PYTHONPATH=/app/fit
-
+# Expose the port the app runs on
 EXPOSE 5000
 
-CMD ["uv", "run", "main_coach.py"] 
+# Command to run the application
+CMD ["python", "main_coach.py"]

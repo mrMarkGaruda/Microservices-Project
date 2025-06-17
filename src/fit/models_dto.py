@@ -112,3 +112,17 @@ class RegisterWorkoutSchema(BaseModel):
 class WorkoutExercisesList(BaseModel):
     workout_id: int
     exercises: List[int]
+
+class RegisterWorkoutExerciseSchema(BaseModel):
+    exercise_id: int
+    reps: int = 0
+    weight: float = 0.0
+    duration_seconds: int = 0
+
+class ExerciseResponseSchema(BaseModel):
+    id: int
+    name: str
+    description: str = ""
+    difficulty: int = 1
+    equipment: str = ""
+    instructions: str = ""
