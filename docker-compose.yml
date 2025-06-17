@@ -25,7 +25,6 @@ services:
         condition: service_healthy
       monolith-db:
         condition: service_healthy
-
   coach:
     build:
       context: .
@@ -44,8 +43,10 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_DEFAULT_USER=rabbit
       - RABBITMQ_DEFAULT_PASS=docker
+      - BILLING_URL=http://billing:5003
     networks:
       - fit
+      - fitnet
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -121,7 +122,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   stats:
     build:
       context: ./src/stats
@@ -147,6 +147,45 @@ services:
       - fitnet
     restart: unless-stopped
 
+  billing_db:
+    image: postgres:15
+    container_name: billing_db
+    environment:
+      POSTGRES_USER: billing_user
+      POSTGRES_PASSWORD: billing_password
+      POSTGRES_DB: billing_db
+    volumes:
+      - billing_db_data:/var/lib/postgresql/data
+    ports:
+      - "12109:5432"
+    networks:
+      - fitnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U billing_user -d billing_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  billing:
+    build:
+      context: ./src/billing
+      dockerfile: Dockerfile
+    container_name: billing_service
+    depends_on:
+      billing_db:
+        condition: service_healthy
+    ports:
+      - "12108:5003"
+    environment:
+      - BILLING_DATABASE_URL=postgresql://billing_user:billing_password@billing_db:5432/billing_db
+      - BILLING_SERVICE_PORT=5003
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./src/billing:/app
+    networks:
+      - fitnet
+    restart: unless-stopped
+
 networks:
   fit:
   fitnet:
@@ -154,3 +193,4 @@ networks:
 
 volumes:
   stats_db_data:
+  billing_db_data:

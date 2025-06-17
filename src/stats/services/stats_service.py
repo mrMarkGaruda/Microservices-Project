@@ -1,10 +1,10 @@
 import logging
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
-from ..database import db_session
-from ..models_db import WorkoutStatModel
-from ..models_dto import WorkoutStatResponseItemSchema, UserWorkoutStatsResponseSchema
-from ..queue_messages import WorkoutPerformedMessage
+from database import db_session
+from models_db import WorkoutStatModel
+from models_dto import WorkoutStatResponseItemSchema, UserWorkoutStatsResponseSchema
+from queue_messages import WorkoutPerformedMessage
 
 logger = logging.getLogger(__name__)
 

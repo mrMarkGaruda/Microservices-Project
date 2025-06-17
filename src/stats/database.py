@@ -25,6 +25,7 @@ def get_db():
         db.close()
 
 def init_db():
+    import models_db
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Stats database initialized successfully.")

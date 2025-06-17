@@ -25,7 +25,7 @@ def get_db():
         db.close()
 
 def init_db():
-    from . import models_db
+    import models_db
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Billing database initialized successfully.")
