@@ -2,6 +2,7 @@ import logging
 from flask import Flask, jsonify
 from .database import init_db, db_session
 from .blueprints import stats_bp
+from .services.rabbitmq_consumer import run_consumer
 import threading
 import os
 import sys
@@ -35,6 +36,11 @@ def create_app():
         db_session.remove()
         logger.debug("DB session removed.")
 
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+        consumer_thread = threading.Thread(target=run_consumer, daemon=True)
+        consumer_thread.start()
+        logger.info("RabbitMQ consumer thread initiated.")
+
     return app
 
 app = create_app()
@@ -43,7 +49,7 @@ def run_flask_app():
     port = int(os.getenv("STATS_SERVICE_PORT", 5002))
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
     logger.info(f"Starting Stats Service on port {port} with debug mode: {debug_mode}")
-    app.run(host="0.0.0.0", port=port, debug=debug_mode, use_reloader=False) # use_reloader=False for threads
+    app.run(host="0.0.0.0", port=port, debug=debug_mode, use_reloader=not debug_mode)
 
 if __name__ == "__main__":
     run_flask_app()
