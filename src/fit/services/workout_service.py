@@ -1,132 +1,145 @@
-from datetime import datetime
+import logging
+import os
+from datetime import datetime, timezone
 from typing import List, Optional
 
 import requests
+from sqlalchemy.orm import joinedload
+
 from ..database import db_session
 from ..models_db import UserExerciseHistory, WorkoutModel
-from ..models_dto import ExerciseId, WodExerciseSchema, WorkoutExercisesList, WorkoutResponseSchema
-from sqlalchemy import func
-import os
+from ..models_dto import (
+    ExerciseId,
+    WodExerciseSchema,
+    WorkoutExercisesList,
+    WorkoutResponseSchema,
+    RegisterWorkoutExerciseSchema,
+    ExerciseResponseSchema
+)
+from ..services.rabbitmq_service import rabbitmq_service
+from ..queue_messages import WorkoutPerformedMessage, WorkoutPerformedExerciseSchema
 
-def register_workout(user_email: str, exercise_ids: List[int]):
-    """
-    Create a new workout for the user with the specified exercises.
-    The workout is created with created_at set to now, but performed_at as null.
-    """
-    db = db_session() 
+logger = logging.getLogger(__name__)
+
+
+def register_workout(user_email: str, exercises: List[RegisterWorkoutExerciseSchema]) -> None:
+    db = db_session()
     try:
-        # Create a new workout
         workout = WorkoutModel(
             user_email=user_email,
             created_at=datetime.utcnow(),
             performed_at=None
         )
         db.add(workout)
-        db.flush()  # Flush to get the workout ID
-        
-        # Add exercises to the workout
-        for exercise_id in exercise_ids:
+        db.flush()  # To get the ID
+
+        for ex in exercises:
             exercise_entry = UserExerciseHistory(
                 workout_id=workout.id,
-                exercise_id=exercise_id
+                exercise_id=ex.exercise_id
             )
             db.add(exercise_entry)
-        
+
         db.commit()
     finally:
         db.close()
 
-def get_exercises_metadata(exercise_ids: List[int]) -> List[WodExerciseSchema]:
-    """
-    Get the metadata for a list of exercise IDs.
-    """
+
+def get_exercises_metadata(exercise_ids: List[int]) -> List[ExerciseResponseSchema]:
     coach_url = os.getenv("COACH_URL")
     history_response = requests.get(f"{coach_url}/exercises")
     history_response.raise_for_status()
     history_exercises = history_response.json()
 
-    filtered_exercises = []
-    for exercise in history_exercises:
-        if exercise['id'] in exercise_ids:
-            filtered_exercises.append(exercise)
-    return filtered_exercises
+    return [ExerciseResponseSchema(**exercise) for exercise in history_exercises if exercise['id'] in exercise_ids]
 
 
-def get_user_next_workout(user_email: str) -> Optional[WorkoutResponseSchema]:
-    """
-    Get the next workout for a user.
-    """
-    workout = get_most_recent_workout_exercises(user_email, performed=False)
-    if workout is None:
-        return None
-    exercises_populated = get_exercises_metadata(workout.exercises)
-    return WorkoutResponseSchema(
-        id=workout.workout_id,
-        exercises=exercises_populated
-    )
-
-def get_most_recent_workout_exercises(user_email: str, performed: bool) -> Optional[WorkoutExercisesList]:
-    """
-    Get the exercises from the user's most recent workout based on its performed status.
-    
-    Args:
-        user_email (str): The email of the user
-        performed (bool): If True, returns the last performed workout. If False, returns the last unperformed workout.
-    
-    Returns:
-        Optional[WorkoutResponseSchema]: Workout ID and list of exercise IDs or None if no matching workout exists.
-    """
+def get_most_recent_workout_exercises(user_email: str, performed: Optional[bool] = None) -> Optional[WorkoutResponseSchema]:
     db = db_session()
     try:
-        # Build the query based on performed status
-        query = db.query(WorkoutModel).filter(
-            WorkoutModel.user_email == user_email
-        )
-        
-        if performed:
-            query = query.filter(WorkoutModel.performed_at.isnot(None))
-            query = query.order_by(WorkoutModel.performed_at.desc())
+        query = db.query(WorkoutModel).filter(WorkoutModel.user_email == user_email)
+
+        if performed is True:
+            query = query.filter(WorkoutModel.performed_at.isnot(None)).order_by(WorkoutModel.performed_at.desc())
+        elif performed is False:
+            query = query.filter(WorkoutModel.performed_at.is_(None)).order_by(WorkoutModel.created_at.desc())
         else:
-            query = query.filter(WorkoutModel.performed_at.is_(None))
             query = query.order_by(WorkoutModel.created_at.desc())
-            
-        last_workout = query.first()
-        
-        if not last_workout:
+
+        workout = query.first()
+
+        if not workout:
             return None
-            
-        # Get exercises from the last workout
-        exercises = db.query(
-            UserExerciseHistory
-        ).filter(
-            UserExerciseHistory.workout_id == last_workout.id
-        ).all()
-        
-        exercise_ids = []
-        for exercise in exercises:
-            exercise_ids.append(exercise.exercise_id)
-            
-        return WorkoutExercisesList(
-            workout_id=last_workout.id,
-            exercises=exercise_ids
+
+        exercises = db.query(UserExerciseHistory).filter(UserExerciseHistory.workout_id == workout.id).all()
+        exercise_ids = [e.exercise_id for e in exercises]
+        exercise_metadata = get_exercises_metadata(exercise_ids)
+
+        return WorkoutResponseSchema(
+            id=workout.id,
+            exercises=exercise_metadata
         )
     finally:
         db.close()
 
-def perform_workout(workout_id: int, user_email: str):
-    """
-    Mark a workout as performed by setting its performed_at timestamp.
-    """
+
+def get_user_next_workout(user_email: str) -> Optional[WorkoutResponseSchema]:
+    return get_most_recent_workout_exercises(user_email, performed=False)
+
+
+def perform_workout(workout_id: int, user_email: str) -> None:
     db = db_session()
     try:
-        workout = db.query(WorkoutModel).filter(
-            WorkoutModel.id == workout_id
+        workout = db.query(WorkoutModel).options(
+            joinedload(WorkoutModel.exercises)
+        ).filter(
+            WorkoutModel.id == workout_id,
+            WorkoutModel.user_email == user_email
         ).first()
-        
-        if workout and workout.user_email == user_email:
-            workout.performed_at = datetime.utcnow()
-            db.commit()
-        else:
-            raise Exception("Workout not found or user does not have access to this workout")
+
+        if not workout:
+            logger.warning(f"Workout not found or does not belong to user. Workout ID: {workout_id}, User: {user_email}")
+            raise ValueError("Workout not found or does not belong to the user")
+
+        if workout.performed:
+            logger.warning(f"Workout already marked as performed. Workout ID: {workout_id}, User: {user_email}")
+            raise ValueError("Workout already marked as performed")
+
+        workout.performed = True
+        workout.performed_at = datetime.now(timezone.utc)
+        db.commit()
+        logger.info(f"Workout {workout_id} marked as performed for user {user_email} at {workout.performed_at}")
+
+        try:
+            exercise_schemas = []
+            if workout.exercises:
+                for wo_exercise in workout.exercises:
+                    exercise_schemas.append(WorkoutPerformedExerciseSchema(exercise_id=wo_exercise.exercise_id))
+
+            event_message = WorkoutPerformedMessage(
+                user_email=user_email,
+                workout_id=workout_id,
+                performed_at=workout.performed_at,
+                exercises=exercise_schemas
+            )
+
+            if rabbitmq_service.publish_workout_performed_event(event_message):
+                logger.info(f"Successfully published WorkoutPerformedEvent for workout {workout_id}, user {user_email}")
+            else:
+                logger.error(f"Failed to publish WorkoutPerformedEvent for workout {workout_id}, user {user_email}")
+        except Exception as e:
+            logger.error(
+                f"Exception during WorkoutPerformedEvent publishing for workout {workout_id}, user {user_email}: {e}",
+                exc_info=True
+            )
+
+    except ValueError as ve:
+        db.rollback()
+        logger.error(f"ValueError performing workout {workout_id} for user {user_email}: {ve}", exc_info=True)
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Generic error performing workout {workout_id} for user {user_email}: {e}", exc_info=True)
+        raise
     finally:
         db.close()
