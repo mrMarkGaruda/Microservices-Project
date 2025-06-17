@@ -76,6 +76,18 @@ def is_user_premium(user_email: str) -> bool:
         return False
 
 
+def cancel_user_subscription(user_email: str) -> bool:
+    billing_url = os.getenv("BILLING_URL", "http://billing:5003")
+    try:
+        resp = requests.post(
+            f"{billing_url}/billing/subscriptions/users/{user_email}/cancel",
+            timeout=3,
+        )
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
 def create_wod_for_user(user_email: str):
     db = db_session()
     try:
