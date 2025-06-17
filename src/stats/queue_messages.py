@@ -1,9 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from datetime import datetime
-
-class CreateWodMessage(BaseModel):
-    email: str
 
 class WorkoutPerformedExerciseSchema(BaseModel):
     exercise_id: int
@@ -13,5 +10,5 @@ class WorkoutPerformedMessage(BaseModel):
     workout_id: int
     performed_at: datetime
     exercises: List[WorkoutPerformedExerciseSchema] = Field(..., description="List of exercises performed in the workout")
-    event_type: str = "WorkoutPerformed" 
+    event_type: str = "WorkoutPerformed"
     event_version: str = "1.0"
