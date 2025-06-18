@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
-from database import db_session
+from ..database import db_session
 from models_db import BillingPlanModel, SubscriptionModel
 from models_dto import (
     BillingPlanResponseSchema,

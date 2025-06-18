@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, jsonify
-from database import init_db, db_session
+from .database import init_db, db_session
 from blueprints.billing_blueprint import billing_bp
 from services.billing_service import seed_initial_plans
 import os
