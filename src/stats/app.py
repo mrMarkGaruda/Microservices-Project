@@ -1,8 +1,8 @@
 import logging
 from flask import Flask, jsonify
 from .database import init_db, db_session
-from blueprints import stats_bp
-from services.rabbitmq_consumer import run_consumer
+from .blueprints import stats_bp
+from .services.rabbitmq_consumer import run_consumer
 import threading
 import os
 import sys

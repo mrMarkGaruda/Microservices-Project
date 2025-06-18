@@ -7,8 +7,8 @@ import threading
 import sys
 sys.path.append('..')
 from pydantic import ValidationError
-from queue_messages import WorkoutPerformedMessage
-from services.stats_service import store_workout_stat
+from ..queue_messages import WorkoutPerformedMessage
+from .stats_service import store_workout_stat
 
 logger = logging.getLogger(__name__)
 logging.getLogger("pika").setLevel(logging.WARNING)

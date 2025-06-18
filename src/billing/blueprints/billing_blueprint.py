@@ -1,13 +1,13 @@
 from flask import Blueprint, request, jsonify, current_app
 from pydantic import ValidationError, EmailStr
-from services.billing_service import (
+from ..services.billing_service import (
     get_available_plans,
     create_subscription,
     get_user_subscription_status,
     cancel_subscription,
     seed_initial_plans
 )
-from models_dto import SubscriptionCreateRequestSchema
+from ..models_dto import SubscriptionCreateRequestSchema
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/billing')
 

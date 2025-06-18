@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, current_app
-from services.stats_service import get_user_workout_stats
+from ..services.stats_service import get_user_workout_stats
 
 stats_bp = Blueprint('stats', __name__, url_prefix='/stats')
 
