@@ -29,4 +29,4 @@ def db():
     
     # Teardown
     db.close()
-    Base.metadata.drop_all(bind=db.get_bind()) 
+    Base.metadata.drop_all(bind=db.get_bind())

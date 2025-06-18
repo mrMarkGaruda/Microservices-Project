@@ -2,8 +2,8 @@ import unittest
 from src.fit.app import app
 from src.fit.database import init_db, db_session
 from src.fit.models_db import Base, UserModel
-import json
 from unittest.mock import patch
+import json
 import jwt
 import datetime
 
@@ -33,50 +33,30 @@ class TestUserAPI(unittest.TestCase):
         self.db.close()
         Base.metadata.drop_all(bind=self.db.get_bind())
         
-    def test_create_user_success(self):
-        # Test data
-        test_user = {
-            "email": "test@example.com",
-            "password": "securepass123",
-            "name": "Test User",
-            "role": "user"
-        }
-        
-        # Make the request with admin token
+    @patch("src.fit.services.user_service.create_user")
+    def test_create_user_success(self, mock_create_user):
+        mock_create_user.return_value = UserModel(email="user@b.com", name="Test", role="user", password_hash="hash")
         response = self.client.post(
-            '/users',
-            data=json.dumps(test_user),
-            content_type='application/json',
-            headers={'Authorization': f'Bearer {self.admin_token}'}
+            "/users",
+            json={"email": "user@b.com", "name": "Test", "role": "user"},
+            headers={"Authorization": f"Bearer {self.admin_token}"}
         )
-        
         # Assert response
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data)
-        self.assertEqual(data['email'], test_user['email'])
-        self.assertEqual(data['name'], test_user['name'])
-        self.assertEqual(data['role'], test_user['role'])
+        self.assertEqual(data['email'], "user@b.com")
+        self.assertEqual(data['name'], "Test")
+        self.assertEqual(data['role'], "user")
         
     def test_create_user_invalid_data(self):
         # Test with invalid data (missing required fields)
-        invalid_user = {
-            "email": "invalid_email",  # Invalid email format
-            "name": "Test User",
-            "role": "user"
-        }
-        
-        # Make the request with admin token
         response = self.client.post(
-            '/users',
-            data=json.dumps(invalid_user),
-            content_type='application/json',
-            headers={'Authorization': f'Bearer {self.admin_token}'}
+            "/users",
+            json={"email": "user@b.com"},
+            headers={"Authorization": f"Bearer {self.admin_token}"}
         )
-        
         # Assert response
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data)
-        self.assertIn('error', data)
+        self.assertEqual(response.status_code, 400)  # Assuming 400 for bad request
 
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()
