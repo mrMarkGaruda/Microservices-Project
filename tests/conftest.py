@@ -6,6 +6,18 @@ import datetime
 from unittest.mock import MagicMock, patch
 from decimal import Decimal
 
+# Set test environment variables before importing apps
+os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
+os.environ.setdefault('BILLING_DATABASE_URL', 'sqlite:///:memory:')
+os.environ.setdefault('STATS_DATABASE_URL', 'sqlite:///:memory:')
+os.environ.setdefault('FIT_API_KEY', 'test-api-key')
+os.environ.setdefault('BOOTSTRAP_KEY', 'bootstrap-secret-key')
+os.environ.setdefault('RABBITMQ_HOST', 'localhost')
+os.environ.setdefault('RABBITMQ_PORT', '5672')
+os.environ.setdefault('RABBITMQ_USER', 'guest')
+os.environ.setdefault('RABBITMQ_PASS', 'guest')
+os.environ.setdefault('LOG_LEVEL', 'ERROR')
+
 # Import all apps for testing
 from src.fit.app import app as fit_app
 from src.coach.app import app as coach_app
