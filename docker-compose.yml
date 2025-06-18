@@ -186,6 +186,19 @@ services:
       - fitnet
     restart: unless-stopped
 
+  nutrition:
+    build:
+      context: ./src/nutrition
+      dockerfile: Dockerfile
+    ports:
+      - "12104:5004"
+    volumes:
+      - ./src/nutrition:/app
+    environment:
+      - NUTRITION_DB_URL=sqlite:///nutrition.db
+    networks:
+      - fit
+
 networks:
   fit:
   fitnet:
