@@ -33,12 +33,13 @@ def get_db():
     finally:
         db.close()
 
+# Import your models here so Base.metadata knows about them
+from .models_db import *  # Replace * with actual model names, e.g., BillingModel, InvoiceModel
+
 def init_db():
     """
     Create all tables. Import your models so that they are registered on Base.metadata.
     """
-    # Ensure your models are imported here so Base.metadata knows about them
-    import models_db  
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Billing database initialized successfully.")
