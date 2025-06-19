@@ -1,50 +1,75 @@
+# Import Blueprint, request, jsonify, g, and current_app from Flask
 from flask import Blueprint, request, jsonify, g, current_app
+# Import ValidationError from pydantic for validation
 from pydantic import ValidationError
 
+# Import CreateWodMessage from the parent queue_messages module
 from ..queue_messages import CreateWodMessage
+# Import user and profile schemas from the parent models_dto module
 from ..models_dto import UserSchema, UserProfileSchema
+# Import user service functions for user management
 from ..services.user_service import (
     create_user as create_user_service,
     get_all_users as get_all_users_service,
     update_user_profile,
     get_user_profile
 )
+# Import authentication and authorization decorators
 from ..services.auth_service import admin_required, jwt_required
+# Import the RabbitMQ service for message publishing
 from ..services.rabbitmq_service import rabbitmq_service
+# Import the function to get the most recent workout exercises
 from ..services.workout_service import get_most_recent_workout_exercises
+# Import os for environment variable access
 import os
 
+# Create a Flask Blueprint for user routes
 user_bp = Blueprint('user', __name__)
 
+# Get the bootstrap key from the environment or use a default
 BOOTSTRAP_KEY = os.environ.get("BOOTSTRAP_KEY", "bootstrap-secret-key")
 
+# Define a route to create a new user
 @user_bp.route("/users", methods=["POST"])
 @admin_required
 def create_user():
     try:
+        # Get the user data from the request
         user_data = request.get_json()
+        # Validate the user data using the schema
         user = UserSchema.model_validate(user_data)
+        # Create the user using the service
         created_user = create_user_service(user)
+        # Log the creation of the new user
         current_app.logger.info(f"Created new user: {user.email}")
+        # Return the created user as JSON
         return jsonify(created_user.model_dump()), 201
     except ValidationError as e:
+        # Log and return validation errors
         current_app.logger.warning(f"Invalid user data received: {e.errors()}")
         return jsonify({"error": "Invalid user data", "details": e.errors()}), 400
     except Exception as e:
+        # Log and return any other errors
         current_app.logger.error(f"Error creating user: {str(e)}")
         return jsonify({"error": "Error creating user", "details": str(e)}), 500
 
+# Define a route to get all users
 @user_bp.route("/users", methods=["GET"])
 @admin_required
 def get_all_users():
     try:
+        # Get all users using the service
         users = get_all_users_service()
+        # Log the number of users retrieved
         current_app.logger.debug(f"Retrieved {len(users)} users")
+        # Return the list of users as JSON
         return jsonify([user.model_dump() for user in users]), 200
     except Exception as e:
+        # Log and return any errors
         current_app.logger.error(f"Error retrieving users: {str(e)}")
         return jsonify({"error": "Error retrieving users", "details": str(e)}), 500
 
+# Define a route to generate WODs for users who need them
 @user_bp.route("/users/generateWods", methods=["POST"])
 @admin_required
 def generate_wods():
@@ -81,12 +106,14 @@ def generate_wods():
         }), 202
         
     except Exception as e:
+        # Log and return any errors
         current_app.logger.error(f"Error queueing WOD generation: {str(e)}")
         return jsonify({
             "error": "Error queueing WOD generation",
             "details": str(e)
         }), 500
 
+# Define a route for user onboarding (profile setup)
 @user_bp.route("/profile/onboarding", methods=["POST"])
 @jwt_required
 def onboard_user():
@@ -109,12 +136,15 @@ def onboard_user():
         return jsonify(updated_profile.model_dump()), 200
         
     except ValidationError as e:
+        # Log and return validation errors
         current_app.logger.warning(f"Invalid profile data for user {g.user_email}: {e.errors()}")
         return jsonify({"error": "Invalid profile data", "details": e.errors()}), 400
     except Exception as e:
+        # Log and return any other errors
         current_app.logger.error(f"Error updating profile for user {g.user_email}: {str(e)}")
         return jsonify({"error": "Error updating profile", "details": str(e)}), 500
 
+# Define a route to get the current user's profile
 @user_bp.route("/profile", methods=["GET"])
 @jwt_required
 def get_profile():
@@ -132,5 +162,6 @@ def get_profile():
         return jsonify(profile.model_dump()), 200
         
     except Exception as e:
+        # Log and return any errors
         current_app.logger.error(f"Error retrieving profile for user {g.user_email}: {str(e)}")
         return jsonify({"error": "Error retrieving profile", "details": str(e)}), 500
