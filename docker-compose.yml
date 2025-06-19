@@ -191,7 +191,7 @@ services:
       context: ./src/nutrition
       dockerfile: Dockerfile
     ports:
-      - "12104:5004"
+      - "12110:5004"
     volumes:
       - ./src/nutrition:/app
     environment:
